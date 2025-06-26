@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kuis Sawit & Energi Terbarukan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 6. Menambahkan library untuk mengubah HTML menjadi gambar -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,10 +15,9 @@
     <style>
       body {
         font-family: "Poppins", sans-serif;
-        overscroll-behavior: none; /* Mencegah pull-to-refresh di mobile */
+        overscroll-behavior: none;
       }
       #quiz-container {
-        /* 9. File bg.png jadikan sebagai bagraound game */
         background-image: url("bg.png");
         background-size: cover;
         background-position: center;
@@ -51,12 +49,15 @@
         background-color: rgba(0, 0, 0, 0.75);
         backdrop-filter: blur(8px);
       }
-      /* FIXED: Menggunakan CSS Grid untuk layout yang lebih robust */
-      #quiz-content-layout {
-        display: grid;
-        grid-template-rows: auto 1fr; /* Header auto, Main content 1fr */
-        height: 100%;
-        overflow: hidden;
+      #share-content img {
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+      }
+      #share-content {
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 1rem;
       }
     </style>
   </head>
@@ -108,45 +109,42 @@
           <div class="loader mb-4"></div>
           <p class="text-lg drop-shadow-md">Mempersiapkan soal kuis...</p>
         </div>
-        <!-- FIXED: Menggunakan ID baru untuk layout grid -->
-        <div id="quiz-content" class="hidden h-full">
-          <div id="quiz-content-layout">
-            <header
-              class="p-4 flex justify-between items-center border-b border-white/20 bg-black/20 text-white drop-shadow-lg"
-            >
-              <div id="question-counter" class="text-sm font-semibold">
-                Soal 1/20
-              </div>
-              <div class="text-lg font-semibold">
-                Waktu: <span id="timer-display">60</span>
-              </div>
-              <div id="score-display" class="text-lg font-bold">Skor: 0</div>
-            </header>
-            <main class="p-4 sm:p-6 overflow-y-auto">
-              <div
-                id="timer-bar"
-                class="w-full bg-gray-300 h-2.5 mb-4 rounded-full"
-              >
-                <div
-                  id="timer-bar-inner"
-                  class="bg-yellow-400 h-2.5 rounded-full"
-                  style="width: 100%"
-                ></div>
-              </div>
-              <div
-                id="image-container"
-                class="w-full h-48 bg-black/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden hidden"
-              ></div>
-              <h2
-                id="question-text"
-                class="text-xl sm:text-2xl font-semibold text-white mb-6 text-center drop-shadow-lg bg-black/20 p-4 rounded-lg"
-              ></h2>
-              <div
-                id="options-container"
-                class="grid grid-cols-1 sm:grid-cols-2 gap-4"
-              ></div>
-            </main>
+        <div
+          id="quiz-content"
+          class="hidden h-full flex flex-col min-h-0 overflow-hidden"
+        >
+          <div id="timer-bar" class="w-full bg-gray-300 h-2.5">
+            <div
+              id="timer-bar-inner"
+              class="bg-yellow-400 h-2.5"
+              style="width: 100%"
+            ></div>
           </div>
+          <header
+            class="p-4 flex justify-between items-center border-b border-white/20 flex-shrink-0 bg-black/20 text-white drop-shadow-lg"
+          >
+            <div id="question-counter" class="text-sm font-semibold">
+              Soal 1/20
+            </div>
+            <div class="text-lg font-semibold">
+              Waktu: <span id="timer-display">60</span>
+            </div>
+            <div id="score-display" class="text-lg font-bold">Skor: 0</div>
+          </header>
+          <main class="p-4 sm:p-6 flex-1 overflow-y-auto min-h-0">
+            <div
+              id="image-container"
+              class="w-full max-h-48 bg-gray-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden hidden"
+            ></div>
+            <h2
+              id="question-text"
+              class="text-xl sm:text-2xl font-semibold text-white mb-6 text-center drop-shadow-lg bg-black/20 p-4 rounded-lg"
+            ></h2>
+            <div
+              id="options-container"
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4"
+            ></div>
+          </main>
         </div>
       </div>
 
@@ -333,6 +331,7 @@
       }
 
       async function generateQuestions() {
+        // 1. Soal dari Gemini API
         const prompt = `Buatkan 20 soal kuis pilihan ganda (a, b, c, d) yang bervariasi tentang "kelapa sawit" dan "teknologi energi terbarukan".
             Pastikan jawabannya valid dan beragam. Jangan tambahkan prompt gambar.`;
 
@@ -362,7 +361,9 @@
         try {
           const result = await callGemini(prompt, generationConfig);
           questions = result;
+          // 2. Assign gambar statis secara random ke beberapa soal
           const shuffledImages = [...imageList].sort(() => 0.5 - Math.random());
+          // Memberi gambar pada 7 soal secara acak
           for (let i = 0; i < 7; i++) {
             const randomQuestionIndex = Math.floor(
               Math.random() * questions.length
@@ -371,6 +372,7 @@
               questions[randomQuestionIndex].image = shuffledImages[i];
             }
           }
+
           loadingState.style.display = "none";
           quizContent.classList.remove("hidden");
           displayQuestion();
@@ -387,8 +389,8 @@
           return;
         }
 
-        stopSound(backsoundGame);
-        playSound(backsoundGame, true);
+        stopSound(backsoundGame); // Hentikan sound dari soal sebelumnya
+        playSound(backsoundGame, true); // Mainkan sound waktu per soal
 
         resetTimer();
         const q = questions[currentQuestionIndex];
@@ -398,6 +400,7 @@
         questionText.textContent = q.question;
         optionsContainer.innerHTML = "";
 
+        // Tampilkan gambar jika ada
         if (q.image) {
           imageContainer.classList.remove("hidden");
           imageContainer.innerHTML = `<img src="${q.image}" alt="Petunjuk Kuis" class="w-full h-full object-contain">`;
@@ -426,6 +429,7 @@
 
         const correctIndex = questions[currentQuestionIndex].correctAnswerIndex;
 
+        // Hapus kelas lama sebelum menambahkan yang baru untuk memastikan warna solid
         if (selectedIndex === correctIndex) {
           score += 10;
           button.classList.remove(
@@ -438,7 +442,7 @@
             "text-white",
             "border-green-500"
           );
-          playSound(correctSound);
+          playSound(correctSound); // Sound jawaban benar
         } else {
           score = Math.max(0, score - 5);
           button.classList.remove(
@@ -447,6 +451,7 @@
             "hover:bg-gray-100"
           );
           button.classList.add("bg-red-500", "text-white", "border-red-500");
+
           const correctButton = optionsContainer.children[correctIndex];
           correctButton.classList.remove(
             "bg-white",
@@ -458,7 +463,7 @@
             "text-white",
             "border-green-500"
           );
-          playSound(wrongSound);
+          playSound(wrongSound); // Sound jawaban salah
         }
 
         scoreDisplay.textContent = `Skor: ${score}`;
@@ -471,7 +476,7 @@
 
       function resetTimer() {
         clearInterval(timerInterval);
-        timeLeft = 60;
+        timeLeft = 60; // Waktu 60 detik per soal
         timerDisplay.textContent = timeLeft;
         timerBarInner.style.transition = "none";
         timerBarInner.style.width = "100%";
@@ -500,6 +505,7 @@
         );
         score = Math.max(0, score - 5);
         scoreDisplay.textContent = `Skor: ${score}`;
+
         const correctButton =
           optionsContainer.children[
             questions[currentQuestionIndex].correctAnswerIndex
@@ -514,6 +520,7 @@
           "text-white",
           "border-green-500"
         );
+
         setTimeout(() => {
           currentQuestionIndex++;
           displayQuestion();
@@ -522,72 +529,112 @@
 
       function endGame() {
         stopSound(backsoundGame);
-        playSound(finishSound);
-        playSound(backsoundMain, true);
+        playSound(finishSound); // Sound kuis selesai
+        playSound(backsoundMain, true); // Mainkan lagi backsound utama
+
         quizScreen.classList.add("hidden");
         endScreen.classList.remove("hidden");
         finalScore.textContent = score;
       }
 
-      // FIXED: Fungsi share yang lebih robust
       async function generateAndShareScore() {
         shareModal.style.display = "flex";
         shareContent.innerHTML =
           '<div class="loader"></div><p>Membuat gambar skor...</p>';
 
-        const scoreCard = document.createElement("div");
-        scoreCard.className = "p-6 rounded-lg text-white text-center";
-        scoreCard.style.width = "350px";
-        scoreCard.style.background =
-          "linear-gradient(135deg, #2563eb, #3b82f6)";
-        scoreCard.innerHTML = `
-                <h3 class="text-3xl font-bold">Kuis Sawit & Energi</h3>
-                <p class="text-lg mt-2">Skor Akhir Saya</p>
-                <p class="text-8xl font-bold my-4">${score}</p>
-                <p class="text-md">Ayo coba kalahkan skorku!</p>`;
-
-        scoreCard.style.position = "absolute";
-        scoreCard.style.left = "-9999px";
-        document.body.appendChild(scoreCard);
-
         try {
+          // Membuat kartu skor dengan desain yang lebih baik
+          const scoreCard = document.createElement("div");
+          scoreCard.className =
+            "p-6 rounded-lg text-white text-center shadow-2xl";
+          scoreCard.style.width = "350px";
+          scoreCard.style.height = "400px";
+          scoreCard.style.background =
+            "linear-gradient(135deg, #1e3a8a, #3b82f6)";
+          scoreCard.style.display = "flex";
+          scoreCard.style.flexDirection = "column";
+          scoreCard.style.justifyContent = "center";
+          scoreCard.style.alignItems = "center";
+          scoreCard.innerHTML = `
+            <h3 class="text-2xl font-bold mb-2">Kuis Sawit & Energi</h3>
+            <p class="text-lg mb-6">Skor Akhir Saya</p>
+            <p class="text-7xl font-bold my-4 animate-bounce">${score}</p>
+            <p class="text-md mt-4">Ayo coba kalahkan skorku!</p>`;
+
+          // Membuat container sementara untuk kartu skor
+          const tempContainer = document.createElement("div");
+          tempContainer.style.position = "fixed";
+          tempContainer.style.left = "0";
+          tempContainer.style.top = "0";
+          tempContainer.style.width = "350px";
+          tempContainer.style.height = "400px";
+          tempContainer.style.zIndex = "-1000";
+          tempContainer.style.opacity = "0";
+          tempContainer.appendChild(scoreCard);
+          document.body.appendChild(tempContainer);
+
+          // Membuat canvas dengan kualitas lebih baik
           const canvas = await html2canvas(scoreCard, {
+            scale: 2,
+            logging: false,
             useCORS: true,
+            allowTaint: true,
             backgroundColor: null,
           });
+
+          // Menghapus container sementara
+          document.body.removeChild(tempContainer);
+
+          // Konversi ke blob
           const blob = await new Promise((resolve) =>
-            canvas.toBlob(resolve, "image/png")
+            canvas.toBlob(resolve, "image/png", 0.9)
           );
           const file = new File([blob], "skor-kuis.png", { type: "image/png" });
-          const shareData = {
-            files: [file],
-            title: "Skor Kuis Saya",
-            text: `Wow, skorku ${score}! Ayo kalahkan skorku!`,
-          };
 
-          if (navigator.canShare && navigator.canShare(shareData)) {
-            await navigator.share(shareData);
+          // Coba berbagi native terlebih dahulu
+          if (navigator.share && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: "Skor Kuis Saya",
+              text: `Wow, skorku ${score}! Ayo kalahkan skorku di Kuis Sawit & Energi!`,
+              files: [file],
+            });
             shareModal.style.display = "none";
           } else {
-            throw new Error("Web Share API with files not supported.");
+            // Fallback untuk browser yang tidak mendukung berbagi file
+            const imageUrl = canvas.toDataURL("image/png");
+            shareContent.innerHTML = `
+              <div class="max-w-md">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">Bagikan Skor Anda!</h2>
+                <p class="mb-4 text-gray-600">Browser Anda tidak mendukung berbagi langsung. Silakan download gambar dan bagikan secara manual.</p>
+                <img src="${imageUrl}" alt="Skor ${score}" class="rounded-lg mb-4 w-full border border-gray-200"/>
+                <div class="flex flex-col sm:flex-row gap-4">
+                  <a href="${imageUrl}" download="skor-kuis-sawit.png" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full text-center transition-colors">
+                    Download Gambar
+                  </a>
+                  <button onclick="copyImageLink('${imageUrl}')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors">
+                    Salin Link
+                  </button>
+                </div>
+              </div>`;
           }
         } catch (err) {
-          console.error("Share fallback:", err);
-          const fallbackCanvas = await html2canvas(scoreCard, {
-            useCORS: true,
-            backgroundColor: null,
-          });
-          const imageUrl = fallbackCanvas.toDataURL("image/png");
+          console.error("Error sharing score:", err);
           shareContent.innerHTML = `
-                     <h2 class="text-2xl font-bold text-slate-800 mb-2">Bagikan Skor!</h2>
-                     <p class="mb-4 text-sm text-gray-600">Fitur 'Bagikan' tidak didukung. Silakan download gambar & bagikan manual.</p>
-                     <img src="${imageUrl}" alt="Skor ${score}" class="rounded-lg mb-4 border-2 border-gray-300"/>
-                     <a href="${imageUrl}" download="skor-kuis-sawit.png" class="inline-block bg-green-500 text-white font-bold py-2 px-6 rounded-full w-full">Download Gambar</a>`;
-        } finally {
-          if (document.body.contains(scoreCard)) {
-            document.body.removeChild(scoreCard);
-          }
+            <div class="text-red-500">
+              <p class="font-bold">Gagal membuat gambar skor</p>
+              <p class="mt-2">${err.message}</p>
+              <button onclick="shareModal.style.display='none'" class="mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-full">
+                Tutup
+              </button>
+            </div>`;
         }
+      }
+
+      function copyImageLink(url) {
+        navigator.clipboard
+          .writeText(url)
+          .then(() => alert("Link gambar berhasil disalin!"))
+          .catch((err) => alert("Gagal menyalin link: " + err));
       }
 
       // --- API Call Functions ---
