@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kuis Sawit & Energi Terbarukan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 6. Menambahkan library untuk mengubah HTML menjadi gambar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        overscroll-behavior: none; /* Mencegah pull-to-refresh di mobile */
+      }
+      #quiz-container {
+        /* 9. File bg.png jadikan sebagai bagraound game */
+        background-image: url("bg.png");
+        background-size: cover;
+        background-position: center;
+      }
+      .option-btn {
+        transition: background-color 0.3s, transform 0.2s;
+      }
+      .loader {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1.5s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      #timer-bar-inner {
+        transition: width 1s linear;
+      }
+      .overlay,
+      .modal {
+        background-color: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-800 flex items-center justify-center h-screen overflow-hidden"
+  >
+    <div
+      id="quiz-container"
+      class="w-full max-w-2xl h-full sm:h-auto sm:max-h-[95vh] bg-white rounded-lg shadow-2xl flex flex-col relative overflow-hidden"
+    >
+      <!-- Audio Elements -->
+      <audio id="backsound-main" src="bagsoound real.mp3" loop></audio>
+      <audio id="backsound-game" src="waktu.mp3" loop></audio>
+      <audio id="correct-sound" src="jawaban bener.mp3"></audio>
+      <audio id="wrong-sound" src="salah.mp3"></audio>
+      <audio id="finish-sound" src="kuis selesai.mp3"></audio>
+
+      <!-- Start Screen -->
+      <div
+        id="start-screen"
+        class="flex flex-col items-center justify-center text-center p-8 h-full text-white"
+      >
+        <h1 class="text-3xl sm:text-4xl font-bold mb-4 drop-shadow-lg">
+          Kuis Sawit & Energi
+        </h1>
+        <p class="mb-8 drop-shadow-md">
+          Uji wawasanmu tentang kelapa sawit dan teknologi energi terbarukan!
+        </p>
+        <button
+          id="start-btn"
+          class="bg-yellow-500 text-slate-900 font-bold py-3 px-10 rounded-full text-xl shadow-lg transform hover:scale-105 transition-transform duration-300 mb-4"
+        >
+          Mulai Kuis!
+        </button>
+        <!-- 5. Tombol Informasi -->
+        <button
+          id="info-btn-start"
+          class="bg-gray-200 bg-opacity-80 text-gray-800 font-bold py-2 px-6 rounded-full text-md transform hover:scale-105 transition-transform duration-300"
+        >
+          Informasi Game
+        </button>
+      </div>
+
+      <!-- Quiz Screen -->
+      <div id="quiz-screen" class="hidden h-full flex flex-col">
+        <div
+          id="loading-state"
+          class="flex flex-col items-center justify-center text-center p-8 h-full text-white"
+        >
+          <div class="loader mb-4"></div>
+          <p class="text-lg drop-shadow-md">Mempersiapkan soal kuis...</p>
+        </div>
+        <!-- 8. Perbaikan Scroll Bar -->
+        <div id="quiz-content" class="hidden h-full flex flex-col min-h-0">
+          <div id="timer-bar" class="w-full bg-gray-300 h-2.5">
+            <div
+              id="timer-bar-inner"
+              class="bg-yellow-400 h-2.5"
+              style="width: 100%"
+            ></div>
+          </div>
+          <!-- FIXED: Mengubah warna teks header menjadi putih -->
+          <header
+            class="p-4 flex justify-between items-center border-b border-white/20 flex-shrink-0 bg-black/20 text-white drop-shadow-lg"
+          >
+            <div id="question-counter" class="text-sm font-semibold">
+              Soal 1/20
+            </div>
+            <div class="text-lg font-semibold">
+              Waktu: <span id="timer-display">60</span>
+            </div>
+            <div id="score-display" class="text-lg font-bold">Skor: 0</div>
+          </header>
+          <main class="p-4 sm:p-6 flex-1 overflow-y-auto min-h-0">
+            <div
+              id="image-container"
+              class="w-full h-48 bg-gray-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden hidden"
+            ></div>
+            <!-- FIXED: Mengubah warna teks soal menjadi putih -->
+            <h2
+              id="question-text"
+              class="text-xl sm:text-2xl font-semibold text-white mb-6 text-center drop-shadow-lg bg-black/20 p-4 rounded-lg"
+            ></h2>
+            <div
+              id="options-container"
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            ></div>
+          </main>
+        </div>
+      </div>
+
+      <!-- End Screen -->
+      <div
+        id="end-screen"
+        class="hidden flex-col items-center justify-center text-center p-8 h-full text-white"
+      >
+        <h1 class="text-4xl font-bold mb-2 drop-shadow-lg">Kuis Selesai!</h1>
+        <p class="mb-4 text-xl drop-shadow-md">Skor Akhir Anda:</p>
+        <p
+          id="final-score"
+          class="text-7xl font-bold text-yellow-400 mb-8 drop-shadow-lg"
+        >
+          0
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button
+            id="restart-btn"
+            class="bg-blue-500 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-transform duration-300"
+          >
+            Coba Lagi
+          </button>
+          <button
+            id="share-btn"
+            class="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-transform duration-300"
+          >
+            Bagikan Skor
+          </button>
+        </div>
+      </div>
+
+      <!-- Info Modal -->
+      <div
+        id="info-modal"
+        class="modal absolute inset-0 items-center justify-center z-30 hidden"
+      >
+        <div
+          class="bg-white rounded-2xl shadow-xl p-6 m-4 max-w-md text-center relative flex flex-col max-h-[80vh]"
+        >
+          <h2 class="text-2xl font-bold text-slate-800 mb-4 flex-shrink-0">
+            Cara Bermain
+          </h2>
+          <!-- 8. Perbaikan Scroll Bar -->
+          <div class="overflow-y-auto">
+            <ul class="text-left text-gray-600 space-y-2 p-2">
+              <li>
+                ✔️ Jawab <strong>20 pertanyaan</strong> seputar sawit dan energi
+                terbarukan.
+              </li>
+              <li>
+                ✔️ Waktu untuk setiap soal adalah <strong>60 detik</strong>.
+              </li>
+              <li>✔️ Jawaban benar mendapat <strong>+10 poin</strong>.</li>
+              <li>
+                ✔️ Jawaban salah mendapat <strong>-5 poin</strong> (skor tidak
+                akan kurang dari 0).
+              </li>
+              <li>✔️ Jika waktu habis, jawaban dianggap salah.</li>
+              <li>
+                ✔️ Beberapa soal akan menampilkan gambar sebagai petunjuk
+                visual.
+              </li>
+              <li>
+                ✔️ Bagikan skor akhirmu ke teman-teman melalui media sosial!
+              </li>
+            </ul>
+          </div>
+          <!-- 5. Tombol tutup informasi -->
+          <button
+            id="close-info-modal"
+            class="mt-4 bg-blue-500 text-white font-bold py-2 px-6 rounded-full w-full"
+          >
+            Mengerti
+          </button>
+        </div>
+      </div>
+
+      <!-- Share Modal -->
+      <div
+        id="share-modal"
+        class="modal absolute inset-0 items-center justify-center z-30 hidden"
+      >
+        <div
+          id="share-content-wrapper"
+          class="bg-white rounded-2xl shadow-xl p-8 m-4 max-w-md text-center relative"
+        >
+          <button
+            id="close-share-modal"
+            class="absolute top-2 right-4 text-3xl font-bold text-gray-500 hover:text-gray-800"
+          >
+            &times;
+          </button>
+          <div id="share-content">
+            <div class="loader"></div>
+            <p>Membuat gambar skor...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const imageList = [
+        "Sumber Energi Alternatif.png",
+        "bioenergi.png",
+        "terbarukan.png",
+        "bisomasa.png",
+        "limbah.png",
+        "panen.png",
+        "bibit.png",
+        "turunan.png",
+        "manfaat.png",
+        "Solar Panel.png",
+      ];
+
+      // --- Elemen DOM ---
+      const startScreen = document.getElementById("start-screen");
+      const quizScreen = document.getElementById("quiz-screen");
+      const endScreen = document.getElementById("end-screen");
+      const loadingState = document.getElementById("loading-state");
+      const quizContent = document.getElementById("quiz-content");
+      const infoModal = document.getElementById("info-modal");
+      const shareModal = document.getElementById("share-modal");
+
+      const startBtn = document.getElementById("start-btn");
+      const restartBtn = document.getElementById("restart-btn");
+      const infoBtnStart = document.getElementById("info-btn-start");
+      const shareBtn = document.getElementById("share-btn");
+      const closeInfoModalBtn = document.getElementById("close-info-modal");
+      const closeShareModalBtn = document.getElementById("close-share-modal");
+
+      const questionCounter = document.getElementById("question-counter");
+      const scoreDisplay = document.getElementById("score-display");
+      const imageContainer = document.getElementById("image-container");
+      const questionText = document.getElementById("question-text");
+      const optionsContainer = document.getElementById("options-container");
+      const finalScore = document.getElementById("final-score");
+      const timerBarInner = document.getElementById("timer-bar-inner");
+      const timerDisplay = document.getElementById("timer-display");
+      const shareContent = document.getElementById("share-content");
+
+      // --- Audio ---
+      const backsoundMain = document.getElementById("backsound-main");
+      const backsoundGame = document.getElementById("backsound-game");
+      const correctSound = document.getElementById("correct-sound");
+      const wrongSound = document.getElementById("wrong-sound");
+      const finishSound = document.getElementById("finish-sound");
+
+      let questions = [];
+      let currentQuestionIndex = 0;
+      let score = 0;
+      let timeLeft = 60;
+      let timerInterval;
+
+      function playSound(sound, loop = false) {
+        sound.currentTime = 0;
+        sound.loop = loop;
+        const promise = sound.play();
+        if (promise !== undefined) {
+          promise.catch((error) =>
+            console.error("Audio playback failed:", error)
+          );
+        }
+      }
+      function stopSound(sound) {
+        sound.pause();
+        sound.currentTime = 0;
+      }
+
+      // --- Core Functions ---
+
+      async function startGame() {
+        stopSound(backsoundMain);
+        startScreen.classList.add("hidden");
+        endScreen.classList.add("hidden");
+        quizScreen.classList.remove("hidden");
+        loadingState.style.display = "flex";
+        quizContent.classList.add("hidden");
+
+        questions = [];
+        currentQuestionIndex = 0;
+        score = 0;
+        scoreDisplay.textContent = "Skor: 0";
+
+        await generateQuestions();
+      }
+
+      async function generateQuestions() {
+        // 1. Soal dari Gemini API
+        const prompt = `Buatkan 20 soal kuis pilihan ganda (a, b, c, d) yang bervariasi tentang "kelapa sawit" dan "teknologi energi terbarukan".
+            Pastikan jawabannya valid dan beragam. Jangan tambahkan prompt gambar.`;
+
+        const generationConfig = {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                question: { type: "STRING" },
+                options: {
+                  type: "ARRAY",
+                  items: { type: "STRING" },
+                  minItems: 4,
+                  maxItems: 4,
+                },
+                correctAnswerIndex: { type: "INTEGER" },
+              },
+              required: ["question", "options", "correctAnswerIndex"],
+            },
+            minItems: 20,
+            maxItems: 20,
+          },
+        };
+
+        try {
+          const result = await callGemini(prompt, generationConfig);
+          questions = result;
+          // 2. Assign gambar statis secara random ke beberapa soal
+          const shuffledImages = [...imageList].sort(() => 0.5 - Math.random());
+          // Memberi gambar pada 7 soal secara acak
+          for (let i = 0; i < 7; i++) {
+            const randomQuestionIndex = Math.floor(
+              Math.random() * questions.length
+            );
+            if (!questions[randomQuestionIndex].image && shuffledImages[i]) {
+              questions[randomQuestionIndex].image = shuffledImages[i];
+            }
+          }
+
+          loadingState.style.display = "none";
+          quizContent.classList.remove("hidden");
+          displayQuestion();
+        } catch (error) {
+          console.error("Error generating questions:", error);
+          loadingState.innerHTML =
+            '<p class="text-red-500">Gagal memuat soal. Silakan coba lagi.</p>';
+        }
+      }
+
+      async function displayQuestion() {
+        if (currentQuestionIndex >= questions.length) {
+          endGame();
+          return;
+        }
+
+        stopSound(backsoundGame); // Hentikan sound dari soal sebelumnya
+        playSound(backsoundGame, true); // 11. Mainkan sound waktu per soal
+
+        resetTimer();
+        const q = questions[currentQuestionIndex];
+        questionCounter.textContent = `Soal ${currentQuestionIndex + 1}/${
+          questions.length
+        }`;
+        questionText.textContent = q.question;
+        optionsContainer.innerHTML = "";
+
+        // Tampilkan gambar jika ada
+        if (q.image) {
+          imageContainer.classList.remove("hidden");
+          imageContainer.innerHTML = `<img src="${q.image}" alt="Petunjuk Kuis" class="w-full h-full object-contain">`;
+        } else {
+          imageContainer.classList.add("hidden");
+        }
+
+        q.options.forEach((option, index) => {
+          const button = document.createElement("button");
+          button.className =
+            "option-btn w-full bg-white border border-gray-300 rounded-lg p-4 text-left hover:bg-gray-100";
+          button.textContent = `${String.fromCharCode(97 + index)}. ${option}`;
+          button.onclick = () => selectAnswer(index, button);
+          optionsContainer.appendChild(button);
+        });
+
+        startTimer();
+      }
+
+      function selectAnswer(selectedIndex, button) {
+        clearInterval(timerInterval);
+        stopSound(backsoundGame);
+        Array.from(optionsContainer.children).forEach(
+          (btn) => (btn.disabled = true)
+        );
+
+        const correctIndex = questions[currentQuestionIndex].correctAnswerIndex;
+
+        // FIXED: Hapus kelas lama sebelum menambahkan yang baru untuk memastikan warna solid
+        if (selectedIndex === correctIndex) {
+          score += 10;
+          button.classList.remove(
+            "bg-white",
+            "border-gray-300",
+            "hover:bg-gray-100"
+          );
+          button.classList.add(
+            "bg-green-500",
+            "text-white",
+            "border-green-500"
+          );
+          playSound(correctSound); // 3. Sound jawaban benar
+        } else {
+          score = Math.max(0, score - 5);
+          button.classList.remove(
+            "bg-white",
+            "border-gray-300",
+            "hover:bg-gray-100"
+          );
+          button.classList.add("bg-red-500", "text-white", "border-red-500");
+
+          const correctButton = optionsContainer.children[correctIndex];
+          correctButton.classList.remove(
+            "bg-white",
+            "border-gray-300",
+            "hover:bg-gray-100"
+          );
+          correctButton.classList.add(
+            "bg-green-500",
+            "text-white",
+            "border-green-500"
+          );
+          playSound(wrongSound); // 3. Sound jawaban salah
+        }
+
+        scoreDisplay.textContent = `Skor: ${score}`;
+
+        setTimeout(() => {
+          currentQuestionIndex++;
+          displayQuestion();
+        }, 1500);
+      }
+
+      function resetTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 60; // 4. Waktu 60 detik per soal
+        timerDisplay.textContent = timeLeft;
+        timerBarInner.style.transition = "none";
+        timerBarInner.style.width = "100%";
+        setTimeout(() => {
+          timerBarInner.style.transition = "width 1s linear";
+        }, 50);
+      }
+
+      function startTimer() {
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          timerDisplay.textContent = timeLeft;
+          timerBarInner.style.width = `${(timeLeft / 60) * 100}%`;
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleTimeUp();
+          }
+        }, 1000);
+      }
+
+      function handleTimeUp() {
+        stopSound(backsoundGame);
+        playSound(wrongSound);
+        Array.from(optionsContainer.children).forEach(
+          (btn) => (btn.disabled = true)
+        );
+        score = Math.max(0, score - 5);
+        scoreDisplay.textContent = `Skor: ${score}`;
+
+        const correctButton =
+          optionsContainer.children[
+            questions[currentQuestionIndex].correctAnswerIndex
+          ];
+        correctButton.classList.remove(
+          "bg-white",
+          "border-gray-300",
+          "hover:bg-gray-100"
+        );
+        correctButton.classList.add(
+          "bg-green-500",
+          "text-white",
+          "border-green-500"
+        );
+
+        setTimeout(() => {
+          currentQuestionIndex++;
+          displayQuestion();
+        }, 1500);
+      }
+
+      function endGame() {
+        stopSound(backsoundGame);
+        playSound(finishSound); // 12. Sound kuis selesai
+        playSound(backsoundMain, true); // 10. Mainkan lagi backsound utama
+
+        quizScreen.classList.add("hidden");
+        endScreen.classList.remove("hidden");
+        finalScore.textContent = score;
+      }
+
+      async function generateAndShareScore() {
+        shareModal.style.display = "flex";
+        shareContent.innerHTML =
+          '<div class="loader"></div><p>Membuat gambar skor...</p>';
+
+        // 6. Membuat elemen kartu skor untuk di-screenshot
+        const scoreCard = document.createElement("div");
+        scoreCard.className = "p-6 rounded-lg text-white text-center";
+        scoreCard.style.width = "350px";
+        scoreCard.style.background =
+          "linear-gradient(135deg, #2563eb, #3b82f6)";
+        scoreCard.innerHTML = `
+                <h3 class="text-3xl font-bold">Kuis Sawit & Energi</h3>
+                <p class="text-lg mt-2">Skor Akhir Saya</p>
+                <p class="text-8xl font-bold my-4">${score}</p>
+                <p class="text-md">Ayo coba kalahkan skorku!</p>`;
+
+        scoreCard.style.position = "absolute";
+        scoreCard.style.left = "-9999px";
+        document.body.appendChild(scoreCard);
+
+        try {
+          const canvas = await html2canvas(scoreCard, { useCORS: true });
+          document.body.removeChild(scoreCard);
+          const blob = await new Promise((resolve) =>
+            canvas.toBlob(resolve, "image/png")
+          );
+          const file = new File([blob], "skor-kuis.png", { type: "image/png" });
+          const shareData = {
+            title: "Skor Kuis Saya",
+            text: `Wow, skorku ${score}! Ayo kalahkan skorku di Kuis Sawit & Energi!`,
+            files: [file],
+          };
+
+          if (navigator.canShare && navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            shareModal.style.display = "none";
+          } else {
+            throw new Error("Web Share with files not supported.");
+          }
+        } catch (err) {
+          console.error("Share failed:", err);
+          const imageUrl = URL.createObjectURL(
+            await new Promise((resolve) =>
+              html2canvas(scoreCard).then((canvas) => canvas.toBlob(resolve))
+            )
+          );
+          shareContent.innerHTML = `
+                     <h2 class="text-2xl font-bold text-slate-800 mb-4">Bagikan Skor Anda!</h2>
+                     <p class="mb-4">Browser Anda tidak mendukung fitur ini. Silakan download gambar dan bagikan secara manual.</p>
+                     <img src="${imageUrl}" alt="Skor ${score}" class="rounded-lg mb-4"/>
+                     <a href="${imageUrl}" download="skor-kuis-sawit.png" class="inline-block bg-green-500 text-white font-bold py-2 px-6 rounded-full">Download Gambar</a>`;
+          document.body.removeChild(scoreCard);
+        }
+      }
+
+      // --- API Call Functions ---
+      async function callGemini(prompt, generationConfig) {
+        const apiKey = "AIzaSyDrVTUfdsdlQ5YnVcAzRYhQa-yj2WyBEp4"; // Masukkan API Key Anda di sini jika diperlukan
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const payload = {
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig,
+        };
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        const result = await response.json();
+        return JSON.parse(result.candidates[0].content.parts[0].text);
+      }
+
+      // --- Event Listeners ---
+      document.addEventListener("DOMContentLoaded", () => {
+        playSound(backsoundMain, true);
+      });
+      startBtn.addEventListener("click", startGame);
+      restartBtn.addEventListener("click", () => {
+        stopSound(backsoundMain);
+        startGame();
+      });
+      infoBtnStart.addEventListener(
+        "click",
+        () => (infoModal.style.display = "flex")
+      );
+      closeInfoModalBtn.addEventListener(
+        "click",
+        () => (infoModal.style.display = "none")
+      );
+      shareBtn.addEventListener("click", generateAndShareScore);
+      closeShareModalBtn.addEventListener("click", () => {
+        shareModal.style.display = "none";
+        shareContent.innerHTML =
+          '<div class="loader"></div><p>Membuat gambar skor...</p>';
+      });
+    </script>
+  </body>
+</html>
