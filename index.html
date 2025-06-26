@@ -101,11 +101,9 @@
           transform: translateX(-50%) translateY(0);
         }
       }
-      /* Sound toggle button */
+      /* --- PERUBAHAN CSS --- */
+      /* Menghapus properti posisi absolut dari tombol suara */
       #sound-toggle {
-        position: absolute;
-        top: 10px;
-        right: 10px;
         background: rgba(255, 255, 255, 0.2);
         border-radius: 50%;
         width: 40px;
@@ -113,9 +111,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 20;
         cursor: pointer;
         transition: all 0.3s;
+        flex-shrink: 0; /* Mencegah tombol menyusut */
       }
       #sound-toggle:hover {
         background: rgba(255, 255, 255, 0.3);
@@ -123,6 +121,45 @@
       #sound-toggle i {
         color: white;
         font-size: 20px;
+      }
+      /* Copyright footer */
+      .copyright {
+        position: absolute;
+        bottom: 10px;
+        left: 50%; /* Tambahkan ini */
+        transform: translateX(-50%); /* Tambahkan ini */
+        width: auto; /* Ubah dari 100% ke auto */
+        text-align: center;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.8rem;
+        padding: 0 1rem;
+        z-index: 5;
+      }
+      /* Warning modal */
+      #warning-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .warning-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 90%;
+        width: 400px;
+        text-align: center;
+      }
+      .warning-icon {
+        font-size: 3rem;
+        color: #f59e0b;
+        margin-bottom: 15px;
       }
     </style>
     <link
@@ -133,10 +170,7 @@
   <body
     class="bg-gray-800 flex items-center justify-center h-screen overflow-hidden"
   >
-    <!-- Sound Toggle Button -->
-    <div id="sound-toggle" title="Toggle Sound">
-      <i class="fas fa-volume-up"></i>
-    </div>
+    <!-- Tombol Suara dipindahkan ke dalam Header Kuis -->
 
     <div
       id="quiz-container"
@@ -163,7 +197,7 @@
       <!-- Start Screen -->
       <div
         id="start-screen"
-        class="flex flex-col items-center justify-center text-center p-8 h-full text-white"
+        class="flex flex-col items-center justify-center text-center p-8 h-full text-white relative"
       >
         <h1 class="text-3xl sm:text-4xl font-bold mb-4 drop-shadow-lg">
           Kuis Sawit & Energi
@@ -183,20 +217,26 @@
         >
           Informasi Game
         </button>
+        <!-- Copyright Footer -->
+        <div class="copyright">&copy; Copyright by Riyan 2025</div>
       </div>
 
       <!-- Quiz Screen -->
-      <div id="quiz-screen" class="hidden h-full flex flex-col">
+      <div id="quiz-screen" class="hidden h-full flex flex-col relative">
         <div
           id="loading-state"
           class="flex flex-col items-center justify-center text-center p-8 h-full text-white"
         >
           <div class="loader mb-4"></div>
           <p class="text-lg drop-shadow-md">Mempersiapkan soal kuis...</p>
+          <!-- Copyright Footer -->
+          <div class="copyright absolute bottom-4">
+            &copy; Copyright by Riyan 2025
+          </div>
         </div>
         <div
           id="quiz-content"
-          class="hidden h-full flex flex-col min-h-0 overflow-hidden"
+          class="hidden h-full flex flex-col min-h-0 overflow-hidden relative"
         >
           <div id="timer-bar" class="w-full bg-gray-300 h-2.5">
             <div
@@ -208,13 +248,23 @@
           <header
             class="p-4 flex justify-between items-center border-b border-white/20 flex-shrink-0 bg-black/20 text-white drop-shadow-lg"
           >
-            <div id="question-counter" class="text-sm font-semibold">
+            <div id="question-counter" class="text-lg font-semibold">
               Soal 1/20
             </div>
             <div class="text-lg font-semibold">
               Waktu: <span id="timer-display">20</span>
             </div>
-            <div id="score-display" class="text-lg font-bold">Skor: 0</div>
+            <!-- --- PERUBAHAN HTML --- -->
+            <!-- Wrapper untuk Skor dan Tombol Suara -->
+            <div class="flex items-center gap-3">
+              <div id="score-display" class="text-lg font-semibold">
+                Skor: 0
+              </div>
+              <!-- Tombol Suara sekarang ada di sini -->
+              <div id="sound-toggle" title="Toggle Sound">
+                <i class="fas fa-volume-up"></i>
+              </div>
+            </div>
           </header>
           <main class="p-4 sm:p-6 flex-1 overflow-y-auto min-h-0">
             <div
@@ -230,13 +280,15 @@
               class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4"
             ></div>
           </main>
+          <!-- Copyright Footer -->
+          <div class="copyright">&copy; Copyright by Riyan 2025</div>
         </div>
       </div>
 
       <!-- End Screen -->
       <div
         id="end-screen"
-        class="hidden flex-col items-center justify-center text-center p-8 h-full text-white"
+        class="hidden flex-col items-center justify-center text-center p-8 h-full text-white relative"
       >
         <h1 class="text-4xl font-bold mb-2 drop-shadow-lg">Kuis Selesai!</h1>
         <p class="mb-4 text-xl drop-shadow-md">Skor Akhir Anda:</p>
@@ -246,20 +298,31 @@
         >
           0
         </p>
-        <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex flex-col items-center gap-4 w-full">
+          <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+            <button
+              id="restart-btn"
+              class="bg-blue-500 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-transform duration-300"
+            >
+              Coba Lagi
+            </button>
+            <button
+              id="share-btn"
+              class="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-transform duration-300"
+            >
+              Bagikan Skor
+            </button>
+          </div>
+          <!-- Warning Button - now below share button with same style -->
           <button
-            id="restart-btn"
-            class="bg-blue-500 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-transform duration-300"
+            id="warning-btn"
+            class="bg-yellow-500 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-transform duration-300"
           >
-            Coba Lagi
-          </button>
-          <button
-            id="share-btn"
-            class="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-transform duration-300"
-          >
-            Bagikan Skor
+            <i class="fas fa-exclamation-triangle mr-2"></i>Penting!
           </button>
         </div>
+        <!-- Copyright Footer -->
+        <div class="copyright">&copy; Copyright by Riyan 2025</div>
       </div>
 
       <!-- Info Modal -->
@@ -327,9 +390,32 @@
           </div>
         </div>
       </div>
+
+      <!-- Warning Modal -->
+      <div id="warning-modal">
+        <div class="warning-content">
+          <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-4">Perhatian Penting!</h3>
+          <p class="mb-4 text-gray-700">
+            Soal-soal dalam kuis ini mungkin mengandung beberapa kesalahan atau
+            perbedaan dengan makna sebenarnya. Kami menyarankan untuk tidak
+            mempercayai 100% jawaban dari kuis ini dan selalu mendalami
+            kebenarannya melalui sumber-sumber terpercaya.
+          </p>
+          <button
+            id="close-warning-modal"
+            class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
+          >
+            Saya Mengerti
+          </button>
+        </div>
+      </div>
     </div>
 
     <script>
+      // Sisa kode JavaScript tidak perlu diubah sama sekali dan akan tetap berfungsi
       const imageList = [
         "Sumber Energi Alternatif.png",
         "bioenergi.png",
@@ -342,8 +428,6 @@
         "manfaat.png",
         "Solar Panel.png",
       ];
-
-      // --- Elemen DOM ---
       const startScreen = document.getElementById("start-screen");
       const quizScreen = document.getElementById("quiz-screen");
       const endScreen = document.getElementById("end-screen");
@@ -352,8 +436,9 @@
       const infoModal = document.getElementById("info-modal");
       const shareModal = document.getElementById("share-modal");
       const soundToggle = document.getElementById("sound-toggle");
-
-      // Notification elements
+      const warningModal = document.getElementById("warning-modal");
+      const warningBtn = document.getElementById("warning-btn");
+      const closeWarningModal = document.getElementById("close-warning-modal");
       const correctNotification = document.getElementById(
         "correct-notification"
       );
@@ -361,14 +446,12 @@
       const timeoutNotification = document.getElementById(
         "timeout-notification"
       );
-
       const startBtn = document.getElementById("start-btn");
       const restartBtn = document.getElementById("restart-btn");
       const infoBtnStart = document.getElementById("info-btn-start");
       const shareBtn = document.getElementById("share-btn");
       const closeInfoModalBtn = document.getElementById("close-info-modal");
       const closeShareModalBtn = document.getElementById("close-share-modal");
-
       const questionCounter = document.getElementById("question-counter");
       const scoreDisplay = document.getElementById("score-display");
       const imageContainer = document.getElementById("image-container");
@@ -378,22 +461,17 @@
       const timerBarInner = document.getElementById("timer-bar-inner");
       const timerDisplay = document.getElementById("timer-display");
       const shareContent = document.getElementById("share-content");
-
-      // --- Audio ---
       const backsoundMain = document.getElementById("backsound-main");
       const backsoundGame = document.getElementById("backsound-game");
       const correctSound = document.getElementById("correct-sound");
       const wrongSound = document.getElementById("wrong-sound");
       const finishSound = document.getElementById("finish-sound");
-
       let questions = [];
       let currentQuestionIndex = 0;
       let score = 0;
       let timeLeft = 20;
       let timerInterval;
       let isSoundOn = true;
-
-      // --- Sound Functions ---
       function playSound(sound, loop = false) {
         if (!isSoundOn) return;
         sound.currentTime = 0;
@@ -405,19 +483,24 @@
           );
         }
       }
-
       function stopSound(sound) {
         sound.pause();
         sound.currentTime = 0;
       }
-
       function toggleSound() {
         isSoundOn = !isSoundOn;
         const icon = soundToggle.querySelector("i");
         if (isSoundOn) {
           icon.classList.remove("fa-volume-mute");
           icon.classList.add("fa-volume-up");
-          playSound(backsoundMain, true);
+          if (
+            startScreen.classList.contains("hidden") &&
+            endScreen.classList.contains("hidden")
+          ) {
+            playSound(backsoundGame, true);
+          } else {
+            playSound(backsoundMain, true);
+          }
         } else {
           icon.classList.remove("fa-volume-up");
           icon.classList.add("fa-volume-mute");
@@ -428,25 +511,19 @@
           stopSound(finishSound);
         }
       }
-
-      // --- Notification Functions ---
       function showNotification(type) {
         const notifications = {
           correct: correctNotification,
           wrong: wrongNotification,
           timeout: timeoutNotification,
         };
-
         const notification = notifications[type];
         if (!notification) return;
-
         notification.classList.remove("hidden");
         setTimeout(() => {
           notification.classList.add("hidden");
         }, 2500);
       }
-
-      // --- Core Functions ---
       async function startGame() {
         stopSound(backsoundMain);
         startScreen.classList.add("hidden");
@@ -454,19 +531,14 @@
         quizScreen.classList.remove("hidden");
         loadingState.style.display = "flex";
         quizContent.classList.add("hidden");
-
         questions = [];
         currentQuestionIndex = 0;
         score = 0;
         scoreDisplay.textContent = "Skor: 0";
-
         await generateQuestions();
       }
-
       async function generateQuestions() {
-        const prompt = `Buatkan 20 soal kuis pilihan ganda (a, b, c, d) yang bervariasi tentang "kelapa sawit" dan "teknologi energi terbarukan".
-            Pastikan jawabannya valid dan beragam. Jangan tambahkan prompt gambar.`;
-
+        const prompt = `Buatkan 20 soal kuis pilihan ganda (a, b, c, d) yang bervariasi tentang "kelapa sawit" dan "teknologi energi terbarukan". Pastikan jawabannya valid dan beragam. Jangan tambahkan prompt gambar.`;
         const generationConfig = {
           responseMimeType: "application/json",
           responseSchema: {
@@ -489,7 +561,6 @@
             maxItems: 20,
           },
         };
-
         try {
           const result = await callGemini(prompt, generationConfig);
           questions = result;
@@ -502,7 +573,6 @@
               questions[randomQuestionIndex].image = shuffledImages[i];
             }
           }
-
           loadingState.style.display = "none";
           quizContent.classList.remove("hidden");
           displayQuestion();
@@ -512,16 +582,13 @@
             '<p class="text-red-500">Gagal memuat soal. Silakan coba lagi.</p>';
         }
       }
-
       async function displayQuestion() {
         if (currentQuestionIndex >= questions.length) {
           endGame();
           return;
         }
-
         stopSound(backsoundGame);
         playSound(backsoundGame, true);
-
         resetTimer();
         const q = questions[currentQuestionIndex];
         questionCounter.textContent = `Soal ${currentQuestionIndex + 1}/${
@@ -529,14 +596,12 @@
         }`;
         questionText.textContent = q.question;
         optionsContainer.innerHTML = "";
-
         if (q.image) {
           imageContainer.classList.remove("hidden");
           imageContainer.innerHTML = `<img src="${q.image}" alt="Petunjuk Kuis" class="w-full h-full object-contain">`;
         } else {
           imageContainer.classList.add("hidden");
         }
-
         q.options.forEach((option, index) => {
           const button = document.createElement("button");
           button.className =
@@ -545,19 +610,15 @@
           button.onclick = () => selectAnswer(index, button);
           optionsContainer.appendChild(button);
         });
-
         startTimer();
       }
-
       function selectAnswer(selectedIndex, button) {
         clearInterval(timerInterval);
         stopSound(backsoundGame);
         Array.from(optionsContainer.children).forEach(
           (btn) => (btn.disabled = true)
         );
-
         const correctIndex = questions[currentQuestionIndex].correctAnswerIndex;
-
         if (selectedIndex === correctIndex) {
           score += 10;
           button.classList.remove(
@@ -580,7 +641,6 @@
             "hover:bg-gray-100"
           );
           button.classList.add("bg-red-500", "text-white", "border-red-500");
-
           const correctButton = optionsContainer.children[correctIndex];
           correctButton.classList.remove(
             "bg-white",
@@ -595,15 +655,12 @@
           playSound(wrongSound);
           showNotification("wrong");
         }
-
         scoreDisplay.textContent = `Skor: ${score}`;
-
         setTimeout(() => {
           currentQuestionIndex++;
           displayQuestion();
         }, 1500);
       }
-
       function resetTimer() {
         clearInterval(timerInterval);
         timeLeft = 20;
@@ -614,7 +671,6 @@
           timerBarInner.style.transition = "width 1s linear";
         }, 50);
       }
-
       function startTimer() {
         timerInterval = setInterval(() => {
           timeLeft--;
@@ -626,18 +682,15 @@
           }
         }, 1000);
       }
-
       function handleTimeUp() {
         stopSound(backsoundGame);
         playSound(wrongSound);
         showNotification("timeout");
-
         Array.from(optionsContainer.children).forEach(
           (btn) => (btn.disabled = true)
         );
         score = Math.max(0, score - 5);
         scoreDisplay.textContent = `Skor: ${score}`;
-
         const correctButton =
           optionsContainer.children[
             questions[currentQuestionIndex].correctAnswerIndex
@@ -652,28 +705,23 @@
           "text-white",
           "border-green-500"
         );
-
         setTimeout(() => {
           currentQuestionIndex++;
           displayQuestion();
         }, 1500);
       }
-
       function endGame() {
         stopSound(backsoundGame);
         playSound(finishSound);
         playSound(backsoundMain, true);
-
         quizScreen.classList.add("hidden");
         endScreen.classList.remove("hidden");
         finalScore.textContent = score;
       }
-
       async function generateAndShareScore() {
         shareModal.style.display = "flex";
         shareContent.innerHTML =
           '<div class="loader"></div><p>Membuat gambar skor...</p>';
-
         try {
           const scoreCard = document.createElement("div");
           scoreCard.className =
@@ -686,12 +734,7 @@
           scoreCard.style.flexDirection = "column";
           scoreCard.style.justifyContent = "center";
           scoreCard.style.alignItems = "center";
-          scoreCard.innerHTML = `
-            <h3 class="text-2xl font-bold mb-2">Kuis Sawit & Energi</h3>
-            <p class="text-lg mb-6">Skor Akhir Saya</p>
-            <p class="text-7xl font-bold my-4 animate-bounce">${score}</p>
-            <p class="text-md mt-4">Ayo coba kalahkan skorku!</p>`;
-
+          scoreCard.innerHTML = ` <h3 class="text-2xl font-bold mb-2">Kuis Sawit & Energi</h3> <p class="text-lg mb-6">Skor Akhir Saya</p> <p class="text-7xl font-bold my-4 animate-bounce">${score}</p> <p class="text-md mt-4">Ayo coba kalahkan skorku!</p>`;
           const tempContainer = document.createElement("div");
           tempContainer.style.position = "fixed";
           tempContainer.style.left = "0";
@@ -702,7 +745,6 @@
           tempContainer.style.opacity = "0";
           tempContainer.appendChild(scoreCard);
           document.body.appendChild(tempContainer);
-
           const canvas = await html2canvas(scoreCard, {
             scale: 2,
             logging: false,
@@ -710,14 +752,11 @@
             allowTaint: true,
             backgroundColor: null,
           });
-
           document.body.removeChild(tempContainer);
-
           const blob = await new Promise((resolve) =>
             canvas.toBlob(resolve, "image/png", 0.9)
           );
           const file = new File([blob], "skor-kuis.png", { type: "image/png" });
-
           if (navigator.share && navigator.canShare({ files: [file] })) {
             await navigator.share({
               title: "Skor Kuis Saya",
@@ -727,42 +766,19 @@
             shareModal.style.display = "none";
           } else {
             const imageUrl = canvas.toDataURL("image/png");
-            shareContent.innerHTML = `
-              <div class="max-w-md">
-                <h2 class="text-2xl font-bold text-slate-800 mb-4">Bagikan Skor Anda!</h2>
-                <p class="mb-4 text-gray-600">Browser Anda tidak mendukung berbagi langsung. Silakan download gambar dan bagikan secara manual.</p>
-                <img src="${imageUrl}" alt="Skor ${score}" class="rounded-lg mb-4 w-full border border-gray-200"/>
-                <div class="flex flex-col sm:flex-row gap-4">
-                  <a href="${imageUrl}" download="skor-kuis-sawit.png" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full text-center transition-colors">
-                    Download Gambar
-                  </a>
-                  <button onclick="copyImageLink('${imageUrl}')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors">
-                    Salin Link
-                  </button>
-                </div>
-              </div>`;
+            shareContent.innerHTML = ` <div class="max-w-md"> <h2 class="text-2xl font-bold text-slate-800 mb-4">Bagikan Skor Anda!</h2> <p class="mb-4 text-gray-600">Browser Anda tidak mendukung berbagi langsung. Silakan download gambar dan bagikan secara manual.</p> <img src="${imageUrl}" alt="Skor ${score}" class="rounded-lg mb-4 w-full border border-gray-200"/> <div class="flex flex-col sm:flex-row gap-4"> <a href="${imageUrl}" download="skor-kuis-sawit.png" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full text-center transition-colors"> Download Gambar </a> <button onclick="copyImageLink('${imageUrl}')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors"> Salin Link </button> </div> </div>`;
           }
         } catch (err) {
           console.error("Error sharing score:", err);
-          shareContent.innerHTML = `
-            <div class="text-red-500">
-              <p class="font-bold">Gagal membuat gambar skor</p>
-              <p class="mt-2">${err.message}</p>
-              <button onclick="shareModal.style.display='none'" class="mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-full">
-                Tutup
-              </button>
-            </div>`;
+          shareContent.innerHTML = ` <div class="text-red-500"> <p class="font-bold">Gagal membuat gambar skor</p> <p class="mt-2">${err.message}</p> <button onclick="shareModal.style.display='none'" class="mt-4 bg-gray-500 text-white font-bold py-2 px-4 rounded-full"> Tutup </button> </div>`;
         }
       }
-
       function copyImageLink(url) {
         navigator.clipboard
           .writeText(url)
           .then(() => alert("Link gambar berhasil disalin!"))
           .catch((err) => alert("Gagal menyalin link: " + err));
       }
-
-      // --- API Call Functions ---
       async function callGemini(prompt, generationConfig) {
         const apiKey = "AIzaSyDrVTUfdsdlQ5YnVcAzRYhQa-yj2WyBEp4";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
@@ -779,8 +795,6 @@
         const result = await response.json();
         return JSON.parse(result.candidates[0].content.parts[0].text);
       }
-
-      // --- Event Listeners ---
       document.addEventListener("DOMContentLoaded", () => {
         playSound(backsoundMain, true);
       });
@@ -804,6 +818,13 @@
           '<div class="loader"></div><p>Membuat gambar skor...</p>';
       });
       soundToggle.addEventListener("click", toggleSound);
+      warningBtn.addEventListener("click", () => {
+        warningModal.style.display = "flex";
+      });
+      closeWarningModal.addEventListener("click", () => {
+        warningModal.style.display = "none";
+      });
+      // Saya hapus event listener yang lama karena tidak lagi relevan
     </script>
   </body>
 </html>
